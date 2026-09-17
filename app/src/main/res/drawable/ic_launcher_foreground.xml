@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <group
+        android:scaleX="0.44"
+        android:scaleY="0.44"
+        android:translateX="268.8"
+        android:translateY="268.8">
+        <!-- Gato: minimalist cat head -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M270,560 A210,210 0 1,1 690,560 A210,210 0 1,1 270,560 Z M310,430 L355,175 L490,335 Z M650,430 L605,175 L470,335 Z" />
+    </group>
+</vector>

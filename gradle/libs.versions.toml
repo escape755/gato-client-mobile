@@ -1,0 +1,76 @@
+[versions]
+agp = "8.9.2"
+kotlin = "2.1.10"
+coreKtx = "1.16.0"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+kotlinxSerializationJsonJvm = "1.8.1"
+lifecycleRuntimeKtx = "2.8.7"
+activityCompose = "1.10.1"
+composeBom = "2025.04.01"
+materialIconsExtended = "1.7.8"
+navigationCompose = "2.8.9"
+
+log4j = "2.24.3"
+netty = "4.2.0.RC4"
+expiringmap = "0.5.11"
+network = "1.6.28-SNAPSHOT"
+fastutil = "8.5.15"
+lombok = "8.12.1"
+math = "2.0"
+nbt = "3.0.3.Final"
+snappy = "2.0.2"
+jose4j = "0.9.6"
+minecraft-auth = "4.1.1"
+jackson-databind = "2.18.3"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+kotlinx-serialization-json-jvm = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm", version.ref = "kotlinxSerializationJsonJvm" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+
+log4j-bom = { group = "org.apache.logging.log4j", name = "log4j-bom", version.ref = "log4j" }
+log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api" }
+log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core" }
+netty-common = { group = "io.netty", name = "netty-common", version.ref = "netty" }
+netty-buffer = { group = "io.netty", name = "netty-buffer", version.ref = "netty" }
+netty-codec = { group = "io.netty", name = "netty-codec", version.ref = "netty" }
+netty-transport = { group = "io.netty", name = "netty-transport", version.ref = "netty" }
+netty-transport-native-unix-common = { group = "io.netty", name = "netty-transport-native-unix-common", version.ref = "netty" }
+expiringmap = { group = "net.jodah", name = "expiringmap", version.ref = "expiringmap" }
+network-common = { group = "com.nukkitx.network", name = "common", version.ref = "network" }
+fastutil-bom = { group = "org.cloudburstmc.fastutil", name = "bom", version.ref = "fastutil" }
+fastutil-long-common = { group = "org.cloudburstmc.fastutil.commons", name = "long-common" }
+fastutil-long-obj-maps = { group = "org.cloudburstmc.fastutil.maps", name = "long-object-maps" }
+fastutil-int-obj-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-object-maps" }
+fastutil-obj-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-int-maps" }
+math = { group = "org.cloudburstmc.math", name = "immutable", version.ref = "math" }
+nbt = { group = "org.cloudburstmc", name = "nbt", version.ref = "nbt" }
+snappy = { group = "io.airlift", name = "aircompressor", version.ref = "snappy" }
+jose4j = { group = "org.bitbucket.b_c", name = "jose4j", version.ref = "jose4j" }
+minecraft-auth = { group = "net.raphimc", name = "MinecraftAuth", version.ref = "minecraft-auth" }
+jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson-databind" }
+
+[bundles]
+netty = [ "netty-common", "netty-buffer", "netty-codec", "netty-transport", "netty-transport-native-unix-common" ]
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+lombok = { id = "io.freefair.lombok", version.ref = "lombok" }

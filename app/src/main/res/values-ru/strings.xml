@@ -1,0 +1,67 @@
+<resources>
+    <string name="app_name" translatable="false">Gato Client Mobile</string>
+    <string name="home">Главная</string>
+    <string name="what_is_this">Что это?</string>
+    <string name="introduction">Gato Client Mobile - это клиент Minecraft Bedrock, который использует подход MITM, предоставляя различные утилиты для улучшения игрового процесса без модификации памяти игры.</string>
+    <string name="backend" translatable="false">GatoRelay</string>
+    <string name="backend_introduction">Установите перехват на основе MITM в несколько простых шагов.</string>
+    <string name="minecraft" translatable="false">Minecraft</string>
+    <string name="recommended_version">Рекомендуемая версия: %s</string>
+    <string name="capturing_game_packets">Получение игровых пакетов</string>
+    <string name="stop">Остановить</string>
+    <string name="overlay_permission_denied">Нет разрешения для наложения поверх других приложений</string>
+    <string name="notification_permission_denied">Нет разрешения на отправку уведомлений</string>
+    <string name="request_overlay_permission">Нам нужно разрешение на отображение окон поверх других приложений</string>
+    <string name="game_settings">Настройки игры</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="cancel">Отмена</string>
+    <string name="server_host_name">Адрес сервера</string>
+    <string name="server_port">Порт сервера</string>
+    <string name="tips">Советы</string>
+    <string name="change_game_settings_tip">Вам нужно отключиться перед изменением настроек игры.</string>
+    <string name="backend_connected">GatoRelay подключён.</string>
+    <string name="start_game">Запустить игру</string>
+    <string name="backend_disconnected">GatoRelay отключён.</string>
+    <string name="select_game">Выбрать игру</string>
+    <string name="no_game_selected">Игра не выбрана</string>
+    <string name="game_selector">Выбор игры</string>
+    <string name="select_game_first">Сначала выберите игру.</string>
+    <string name="failed_to_launch_game">Не удалось запустить игру.</string>
+    <string name="account">Аккаунт</string>
+    <string name="add_account">Добавить аккаунт</string>
+    <string name="fetch_account_failed">Не удалось войти в аккаунт: %s</string>
+    <string name="delete">Удалить</string>
+    <string name="select">Выбрать</string>
+    <string name="unselect">Снять выбор</string>
+    <string name="has_been_selected">(Выбрано)</string>
+    <string name="server">Сервера</string>
+    <string name="about">О приложении</string>
+    <string name="settings">Настройки</string>
+    <string name="how_do_i_switch_login_mode">Как мне переключаться между режимами входа?</string>
+    <string name="login_mode_introduction">Если вы хотите войти в онлайн-режим, добавьте учетную запись и выберите ее. Если вы хотите войти в оффлайн-режим, снимите выбор учетной записи.</string>
+    <string name="combat">Сражение</string>
+    <string name="motion">Движение</string>
+    <string name="visual">Визуал</string>
+    <string name="particle">Частицы</string>
+    <string name="misc">Разное</string>
+    <string name="config">Конфигурации</string>
+    <string name="overlay_opacity">Прозрачность кнопки</string>
+    <string name="shortcut_opacity">Прозрачность ярлыка</string>
+    <string name="overlay_icon">Значок наложения</string>
+    <string name="overlay_icon_description">Изменить значок плавающей кнопки</string>
+    <string name="overlay_opacity_settings">Настройки прозрачности</string>
+    <string name="overlay_opacity_description">Настройка прозрачности кнопок и ярлыков</string>
+    <string name="overlay_border_color">Цвет границы наложения</string>
+    <string name="overlay_border_color_description">Изменить цвет границы плавающей кнопки</string>
+    <string name="request_ignore_battery_optimization">Для стабильного соединения необходимо разрешение на игнорирование оптимизации батареи</string>
+    <string name="ignore_battery_optimization_denied">Нет разрешения на игнорирование оптимизации батареи</string>
+    <string name="shortcut">Ярлык</string>
+    <string name="check_updates_and_news">Проверить обновления и новости</string>
+    <string name="crash_happened">Произошёл сбой</string>
+    <string name="cannot_back">Произошел сбой. Пожалуйста перезайдите в приложение.</string>
+    <string name="effect">Эффекты</string>
+    <string name="login_in">Войти через %s</string>
+    <string name="fetch_account_successfully">Успешный вход в аккаунт</string>
+    <string name="xbox_device_code">код Xbox устройства</string>
+    <string name="refresh">Обновить</string>
+</resources>
