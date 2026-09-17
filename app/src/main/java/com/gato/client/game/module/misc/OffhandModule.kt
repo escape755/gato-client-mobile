@@ -55,7 +55,16 @@ class OffhandModule : Module("Offhand", ModuleCategory.Misc) {
         getValue("Swap Totem")?.visibleIf = { smart }
         getValue("Swap Shield")?.visibleIf = { smart }
         getValue("SurroundOnly")?.visibleIf = { smart }
-        getValue("Debug")?.visibleIf = { smart }
+        // Debug is intentionally visible in both modes now: it's the only way
+        // to see what Offhand is doing when Smart is off.
+    }
+
+    private var lastDebugMsg: String? = null
+    private fun dbg(msg: String) {
+        if (!debug) return
+        if (msg == lastDebugMsg) return
+        lastDebugMsg = msg
+        session.displayClientMessage("[Offhand] $msg")
     }
 
     private val TOTEM = "minecraft:totem_of_undying"
@@ -103,7 +112,10 @@ class OffhandModule : Module("Offhand", ModuleCategory.Misc) {
         var itemNameTarget: String? = null
         if (!smart) {
             itemNameTarget = if (itemMode == 0) TOTEM else SHIELD
-            if (itemName(offhand) == itemNameTarget) return
+            if (itemName(offhand) == itemNameTarget) {
+                dbg("offhand ya tiene $itemNameTarget, nada que hacer")
+                return
+            }
         } else {
             // Update shouldweswap flag FIRST (health hysteresis, same as PC)
             if (health >= swapBack) shouldWeSwap = true
@@ -119,7 +131,10 @@ class OffhandModule : Module("Offhand", ModuleCategory.Misc) {
 
             itemNameTarget = if (shouldWeSwap && isSurrounded && hasShield) SHIELD else TOTEM
 
-            if (itemName(offhand) == itemNameTarget) return
+            if (itemName(offhand) == itemNameTarget) {
+                dbg("offhand ya tiene $itemNameTarget (hasTotem=$hasTotem hasShield=$hasShield)")
+                return
+            }
         }
 
         if (itemNameTarget == null) return
@@ -132,8 +147,12 @@ class OffhandModule : Module("Offhand", ModuleCategory.Misc) {
 
         // PC: search the 36 inventory slots for the item
         val bestSlot = inventory.searchForItem(0 until 36) { itemName(it) == itemNameTarget }
-            ?: return
+        if (bestSlot == null) {
+            dbg("NO encontre $itemNameTarget en el inventario (offhand actual=${itemName(offhand) ?: "vacio"})")
+            return
+        }
 
+        dbg("moviendo $itemNameTarget desde slot $bestSlot a offhand")
         // Swap inventory[bestSlot] <-> offhand and sync the client UI
         inventory.moveItem(bestSlot, PlayerInventory.SLOT_OFFHAND, inventory, session)
     }

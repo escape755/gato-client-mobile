@@ -201,7 +201,7 @@ class PlayerInventory(private val player: LocalPlayer) : EntityInventory(player)
             ContainerSlotType.INVENTORY -> 0
             ContainerSlotType.ARMOR -> 36
             ContainerSlotType.OFFHAND -> 40
-            ContainerSlotType.HOTBAR -> 27
+            ContainerSlotType.HOTBAR -> 0
             else -> null
         }
     }
