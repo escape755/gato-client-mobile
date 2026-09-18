@@ -102,6 +102,16 @@ class PlayerInventory(private val player: LocalPlayer) : EntityInventory(player)
                 }
                 packet.entries.clear()
                 packet.entries.addAll(newResponse)
+
+                // Diagnostic: we never reconcile `content` against the server's
+                // accept/reject response for an inventory action - a rejection here
+                // is a strong sign our local inventory tracking has drifted from
+                // what the real server thinks is in your inventory.
+                newResponse.forEach {
+                    if (it.result != org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseStatus.OK) {
+                        player.session.displayClientMessage("[Inventory] pedido rechazado: ${it.result}")
+                    }
+                }
             }
 
             is PlayerAuthInputPacket -> {
