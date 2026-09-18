@@ -102,10 +102,6 @@ class OffhandModule : Module("Offhand", ModuleCategory.Misc) {
 
         if (!isEnabled) return
 
-        if (debug) {
-            session.displayClientMessage(health.toString())
-        }
-
         val inventory = session.localPlayer.inventory
         val offhand = inventory.offhand
 
@@ -113,7 +109,7 @@ class OffhandModule : Module("Offhand", ModuleCategory.Misc) {
         if (!smart) {
             itemNameTarget = if (itemMode == 0) TOTEM else SHIELD
             if (itemName(offhand) == itemNameTarget) {
-                dbg("offhand ya tiene $itemNameTarget, nada que hacer")
+                dbg("hp=$health | offhand ya tiene $itemNameTarget, nada que hacer")
                 return
             }
         } else {
@@ -132,7 +128,7 @@ class OffhandModule : Module("Offhand", ModuleCategory.Misc) {
             itemNameTarget = if (shouldWeSwap && isSurrounded && hasShield) SHIELD else TOTEM
 
             if (itemName(offhand) == itemNameTarget) {
-                dbg("offhand ya tiene $itemNameTarget (hasTotem=$hasTotem hasShield=$hasShield)")
+                dbg("hp=$health | offhand ya tiene $itemNameTarget (hasTotem=$hasTotem hasShield=$hasShield)")
                 return
             }
         }
@@ -148,11 +144,11 @@ class OffhandModule : Module("Offhand", ModuleCategory.Misc) {
         // PC: search the 36 inventory slots for the item
         val bestSlot = inventory.searchForItem(0 until 36) { itemName(it) == itemNameTarget }
         if (bestSlot == null) {
-            dbg("NO encontre $itemNameTarget en el inventario (offhand actual=${itemName(offhand) ?: "vacio"})")
+            dbg("hp=$health | NO encontre $itemNameTarget en el inventario (offhand actual=${itemName(offhand) ?: "vacio"})")
             return
         }
 
-        dbg("moviendo $itemNameTarget desde slot $bestSlot a offhand")
+        dbg("hp=$health | moviendo $itemNameTarget desde slot $bestSlot a offhand")
         // Swap inventory[bestSlot] <-> offhand and sync the client UI
         inventory.moveItem(bestSlot, PlayerInventory.SLOT_OFFHAND, inventory, session)
     }
