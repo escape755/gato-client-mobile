@@ -1,63 +1,38 @@
 package com.gato.client.game.module.misc
 
 import com.gato.client.game.InterceptablePacket
-import com.gato.client.game.ListItem
 import com.gato.client.game.Module
 import com.gato.client.game.ModuleCategory
 import com.gato.client.game.inventory.PlayerInventory
-import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData
-import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket
 
 /**
- * Port of the GatoClient (PC) Offhand module (the AutoTotem) — exact behavior
- * and settings.
+ * Port of Zenryox Client's AutoTotemModule (game/module/combat/AutoTotemModule.kt),
+ * adapted to Gato's Module/PlayerInventory API. Requested directly by the user as a
+ * straight port instead of Gato's own PC-parity Offhand implementation.
  *
- * PC reference: Client/Managers/ModuleManager/Modules/Category/Player/Offhand.cpp
- *
- * The PC module swaps inventory[slot] <-> offhand via a ComplexInventoryTransaction
- * with two InventoryActions; on mobile that maps to PlayerInventory.moveItem into
- * SLOT_OFFHAND, which sends the right packet for both server-authoritative
- * (ItemStackRequest place/swap) and legacy (InventoryTransaction) sessions and
- * syncs the client's inventory UI afterwards.
- *
- * Deviations imposed by the relay architecture:
- * - Item identity is matched by definition name (minecraft:totem_of_undying /
- *   minecraft:shield) instead of the PC SDK's runtime item ids.
- * - Health is tracked from the client-bound UpdateAttributesPacket (the PC reads
- *   it from memory each tick).
- * - SurroundOnly approximates the PC's 4-side air check with the auth input's
- *   HORIZONTAL_COLLISION flag — the relay has no voxel access.
+ * Note: this is simpler than the previous Offhand module on purpose, matching
+ * Zenryox exactly - no Shield swapping, no health-hysteresis "Smart" mode, no
+ * SurroundOnly. Only totem-to-offhand (or totem-to-hand, if Prefer Main Hand is on).
+ * Zenryox's CombatCoordinator inventory-lock dependency was dropped since Gato has
+ * no equivalent cross-module lock; nothing else in Gato reads it.
  */
 class OffhandModule : Module("Offhand", ModuleCategory.Misc) {
 
-    // --- named selector (horizontal chip list in the UI) ---
-    private class Mode(override val name: String, val idx: Int) : ListItem
-
-    private val itemModes = listOf(Mode("Totem", 0), Mode("Shield", 1))
-
-    // --- Settings: same names and defaults as the PC module ---
-    private var itemItem by listValue("Item", itemModes[0], itemModes.toSet())
-    private var delay by intValue("Delay", 0, 0..20)
-    private var smart by boolValue("Smart", false)
-    private var swapToHealth by floatValue("Swap Totem", 0f, 0f..20f)
-    private var swapBack by floatValue("Swap Shield", 0f, 0f..20f)
-    private var surroundOnly by boolValue("SurroundOnly", false)
+    private var delay by intValue("Delay (ms)", 50, 0..1000)
+    private var onlyLowHealth by boolValue("Only Low Health", false)
+    private var healthThreshold by intValue("Health Threshold", 10, 1..20)
+    private var replaceOffhand by boolValue("Replace Offhand", true)
+    private var preferMainHand by boolValue("Prefer Main Hand", false)
+    private var hotbarPriority by boolValue("Hotbar Priority", true)
     private var debug by boolValue("Debug", false)
 
-    // int accessor over the named selector
-    private val itemMode get() = (itemItem as Mode).idx
+    private var lastTotemTime = 0L
+    private var health = 20f
 
-    init {
-        // Visibility rules copied from the PC registerSetting lambdas
-        getValue("Swap Totem")?.visibleIf = { smart }
-        getValue("Swap Shield")?.visibleIf = { smart }
-        getValue("SurroundOnly")?.visibleIf = { smart }
-        // Debug is intentionally visible in both modes now: it's the only way
-        // to see what Offhand is doing when Smart is off.
-    }
+    private val TOTEM = "minecraft:totem_of_undying"
 
     private var lastDebugMsg: String? = null
     private fun dbg(msg: String) {
@@ -67,89 +42,65 @@ class OffhandModule : Module("Offhand", ModuleCategory.Misc) {
         session.displayClientMessage("[Offhand] $msg")
     }
 
-    private val TOTEM = "minecraft:totem_of_undying"
-    private val SHIELD = "minecraft:shield"
-
-    private var shouldWeSwap = false
-    private var swapDelay = 0
-    private var health = 20f
-    private var horizontalCollision = false
-
-    private fun itemName(item: ItemData): String? = item.definition?.identifier
+    private fun isTotem(item: ItemData) =
+        item != ItemData.AIR && item.definition?.identifier == TOTEM
 
     override fun beforePacketBound(interceptablePacket: InterceptablePacket) {
         when (val packet = interceptablePacket.packet) {
             is UpdateAttributesPacket -> {
-                if (isSessionCreated &&
-                    packet.runtimeEntityId == session.localPlayer.runtimeEntityId
-                ) {
-                    packet.attributes
-                        .find { it.name == "minecraft:health" }
-                        ?.let { health = it.value }
+                if (isSessionCreated && packet.runtimeEntityId == session.localPlayer.runtimeEntityId) {
+                    packet.attributes.find { it.name == "minecraft:health" }?.let { health = it.value }
                 }
             }
 
-            is PlayerAuthInputPacket -> tick(packet)
+            is PlayerAuthInputPacket -> tick()
         }
     }
 
-    private fun tick(packet: BedrockPacket) {
-        if (!isSessionCreated) return
-        packet as PlayerAuthInputPacket
+    private fun tick() {
+        if (!isSessionCreated || !isEnabled) return
 
-        // SurroundOnly approximation signal (see class comment)
-        horizontalCollision = packet.inputData.contains(PlayerAuthInputData.HORIZONTAL_COLLISION)
-
-        if (!isEnabled) return
-
+        val now = System.currentTimeMillis()
         val inventory = session.localPlayer.inventory
-        val offhand = inventory.offhand
 
-        var itemNameTarget: String? = null
-        if (!smart) {
-            itemNameTarget = if (itemMode == 0) TOTEM else SHIELD
-            if (itemName(offhand) == itemNameTarget) {
-                dbg("hp=$health | offhand ya tiene $itemNameTarget, nada que hacer")
-                return
-            }
-        } else {
-            // Update shouldweswap flag FIRST (health hysteresis, same as PC)
-            if (health >= swapBack) shouldWeSwap = true
-            if (health <= swapToHealth) shouldWeSwap = false
+        if (onlyLowHealth && health > healthThreshold) {
+            dbg("hp=$health | esperando (Only Low Health, umbral=$healthThreshold)")
+            return
+        }
+        if (now - lastTotemTime < delay) return
 
-            // PC: shield anywhere in the 36 inventory slots or in the offhand;
-            // the full-range search covers content[0..40] which includes both
-            val hasShield = inventory.searchForItem { itemName(it) == SHIELD } != null
-            val hasTotem = inventory.searchForItem { itemName(it) == TOTEM } != null
+        val target = if (preferMainHand) inventory.hand else inventory.offhand
+        if (isTotem(target)) {
+            dbg("hp=$health | ya tiene totem en " + (if (preferMainHand) "mano principal" else "offhand"))
+            return
+        }
 
-            // Shield only if: flag says swap, surrounded check passes, AND shield exists
-            val isSurrounded = if (surroundOnly && shouldWeSwap) horizontalCollision else true
-
-            itemNameTarget = if (shouldWeSwap && isSurrounded && hasShield) SHIELD else TOTEM
-
-            if (itemName(offhand) == itemNameTarget) {
-                dbg("hp=$health | offhand ya tiene $itemNameTarget (hasTotem=$hasTotem hasShield=$hasShield)")
+        if (!replaceOffhand && !preferMainHand) {
+            val offhand = inventory.offhand
+            if (offhand != ItemData.AIR && !isTotem(offhand)) {
+                dbg("hp=$health | offhand ocupado con otra cosa, Replace Offhand esta apagado")
                 return
             }
         }
 
-        if (itemNameTarget == null) return
-
-        if (swapDelay < delay) {
-            swapDelay++
-            return
-        }
-        swapDelay = 0
-
-        // PC: search the 36 inventory slots for the item
-        val bestSlot = inventory.searchForItem(0 until 36) { itemName(it) == itemNameTarget }
-        if (bestSlot == null) {
-            dbg("hp=$health | NO encontre $itemNameTarget en el inventario (offhand actual=${itemName(offhand) ?: "vacio"})")
+        val totemSlot = findTotemSlot(inventory)
+        if (totemSlot == null) {
+            dbg("hp=$health | NO encontre totem en el inventario")
             return
         }
 
-        dbg("hp=$health | moviendo $itemNameTarget desde slot $bestSlot a offhand")
-        // Swap inventory[bestSlot] <-> offhand and sync the client UI
-        inventory.moveItem(bestSlot, PlayerInventory.SLOT_OFFHAND, inventory, session)
+        val targetSlot = if (preferMainHand) inventory.heldItemSlot else PlayerInventory.SLOT_OFFHAND
+        if (totemSlot == targetSlot) return
+
+        dbg("hp=$health | moviendo totem desde slot $totemSlot a slot $targetSlot")
+        inventory.moveItem(totemSlot, targetSlot, inventory, session)
+        lastTotemTime = now
+    }
+
+    private fun findTotemSlot(inventory: PlayerInventory): Int? {
+        if (hotbarPriority) {
+            inventory.searchForItemInHotbar { isTotem(it) }?.let { return it }
+        }
+        return inventory.searchForItem(0 until 36) { isTotem(it) }
     }
 }
